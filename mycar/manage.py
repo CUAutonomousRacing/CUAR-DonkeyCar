@@ -263,14 +263,8 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
             
             show_record_count_status()
 
-    #Sombrero
-    if cfg.HAVE_SOMBRERO:
-        from donkeycar.parts.sombrero import Sombrero
-        s = Sombrero()
-
     #IMU
     add_imu(V, cfg)
-
 
     # Use the FPV preview, which will show the cropped image output, or the full frame.
     if cfg.USE_FPV:
@@ -417,21 +411,6 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
         V.add(kl, inputs=inputs, outputs=outputs, run_condition='run_pilot')
 
-    #
-    # stop at a stop sign
-    #
-    if cfg.STOP_SIGN_DETECTOR:
-        from donkeycar.parts.object_detector.stop_sign_detector \
-            import StopSignDetector
-        V.add(StopSignDetector(cfg.STOP_SIGN_MIN_SCORE,
-                               cfg.STOP_SIGN_SHOW_BOUNDING_BOX,
-                               cfg.STOP_SIGN_MAX_REVERSE_COUNT,
-                               cfg.STOP_SIGN_REVERSE_THROTTLE),
-              inputs=['cam/image_array', 'pilot/throttle'],
-              outputs=['pilot/throttle', 'cam/image_array'])
-        V.add(ThrottleFilter(), 
-              inputs=['pilot/throttle'],
-              outputs=['pilot/throttle'])
 
     #
     # to give the car a boost when starting ai mode in a race.
@@ -710,6 +689,8 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
         #
         # RC controller
         #
+        if cfg.CONTROLLER_TYPE == "Teensy_RC":
+            V.add(ctr,outputs=['user/angle', 'user/throttle'])
         if cfg.CONTROLLER_TYPE == "pigpio_rc":  # an RC controllers read by GPIO pins. They typically don't have buttons
             from donkeycar.parts.controller import RCReceiver
             ctr = RCReceiver(cfg)

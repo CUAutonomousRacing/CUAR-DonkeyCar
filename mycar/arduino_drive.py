@@ -40,8 +40,10 @@ def drive(cfg):
     #       threaded=True)
 
     #Drive train setup
-    arduino_controller = ArduinoFirmata(
-        servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)
+    arduino_controller = ArduinoFirmata(servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)
+    # teensy_controller = TeensyControl(servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)
+    # ^ needs to write to serial the commanded angle or throttle
+
     steering = ArdPWMSteering(controller=arduino_controller,
                               left_pulse=cfg.STEERING_ARDUINO_LEFT_PWM,
                               right_pulse=cfg.STEERING_ARDUINO_RIGHT_PWM)
