@@ -7,7 +7,7 @@ from donkeycar.parts.tub_v2 import TubWriter
 from donkeycar.parts.datastore import TubHandler
 from donkeycar.parts.controller import LocalWebController, WebFpv
 from donkeycar.parts.Teensy_RC import TeensyRC
-from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrottle
+from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrottle, BuffMata
 from donkeycar.parts.transform import Lambda
 from donkeycar.parts.pipe import Pipe
 from docopt import docopt
@@ -124,6 +124,9 @@ def add_drivetrain(V, cfg):
                                   min_pulse=cfg.THROTTLE_ARDUINO_REVERSE_PWM)
         V.add(steering, inputs=['user/angle'])
         V.add(throttle, inputs=['user/throttle'])
+    if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
+        drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN)
+        V.add(drivetrain, inputs=['user/angle','user/throttle'])
 ########################################################################
 #                       START THE DRIVE LOOP                           #
 ########################################################################
