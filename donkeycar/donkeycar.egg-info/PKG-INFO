@@ -7,22 +7,66 @@ Author: Will Roscoe, Adam Conway, Tawn Kramer
 Author-email: wroscoe@gmail.com, adam@casaconway.com, tawnkramer@gmail.com
 License: MIT
 Keywords: selfdriving cars donkeycar diyrobocars
-Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
-Provides-Extra: pi
-Provides-Extra: nano
-Provides-Extra: pc
-Provides-Extra: dev
-Provides-Extra: ci
-Provides-Extra: tf
-Provides-Extra: torch
-Provides-Extra: mm1
 License-File: LICENSE
+Requires-Dist: numpy==1.19
+Requires-Dist: pillow
+Requires-Dist: docopt
+Requires-Dist: tornado
+Requires-Dist: requests
+Requires-Dist: h5py
+Requires-Dist: PrettyTable
+Requires-Dist: paho-mqtt
+Requires-Dist: simple_pid
+Requires-Dist: progress
+Requires-Dist: typing_extensions
+Requires-Dist: pyfiglet
+Requires-Dist: psutil
+Requires-Dist: pynmea2
+Requires-Dist: pyserial
+Requires-Dist: utm
+Provides-Extra: pi
+Requires-Dist: picamera; extra == "pi"
+Requires-Dist: Adafruit_PCA9685; extra == "pi"
+Requires-Dist: adafruit-circuitpython-lis3dh; extra == "pi"
+Requires-Dist: adafruit-circuitpython-ssd1306; extra == "pi"
+Requires-Dist: adafruit-circuitpython-rplidar; extra == "pi"
+Requires-Dist: RPi.GPIO; extra == "pi"
+Requires-Dist: imgaug; extra == "pi"
+Provides-Extra: nano
+Requires-Dist: Adafruit_PCA9685; extra == "nano"
+Requires-Dist: adafruit-circuitpython-lis3dh; extra == "nano"
+Requires-Dist: adafruit-circuitpython-ssd1306; extra == "nano"
+Requires-Dist: adafruit-circuitpython-rplidar; extra == "nano"
+Provides-Extra: pc
+Requires-Dist: matplotlib; extra == "pc"
+Requires-Dist: kivy; extra == "pc"
+Requires-Dist: protobuf; extra == "pc"
+Requires-Dist: pandas; extra == "pc"
+Requires-Dist: pyyaml; extra == "pc"
+Requires-Dist: plotly; extra == "pc"
+Requires-Dist: albumentations; extra == "pc"
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: responses; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+Provides-Extra: ci
+Requires-Dist: codecov; extra == "ci"
+Provides-Extra: tf
+Requires-Dist: tensorflow==2.2.0; extra == "tf"
+Provides-Extra: torch
+Requires-Dist: pytorch; extra == "torch"
+Requires-Dist: torchvision==0.12; extra == "torch"
+Requires-Dist: torchaudio; extra == "torch"
+Requires-Dist: fastai; extra == "torch"
+Provides-Extra: mm1
+Requires-Dist: pyserial; extra == "mm1"
 
 # Donkeycar: a python self driving library
 
@@ -98,5 +142,3 @@ V.start(rate_hz=10)
 
 See [home page](http://donkeycar.com), [docs](http://docs.donkeycar.com)
 or join the [Discord server](http://www.donkeycar.com/community.html) to learn more.
-
-
