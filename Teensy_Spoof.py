@@ -1,24 +1,21 @@
+from BuffMata import BuffMata
 import serial
-import time
 import math
+import time
 
-ser = serial.Serial(
-    port='/dev/ttyTHS1',
-    baudrate=115200,
-    timeout=1
-)
+# Generate mock PWM commands ranging between -1 and 1
 
-print("Spoofing RC commands...")
-
-t = 0.0
-while True:
-    angle = 0.5 * math.sin(t)
-    throttle = 0.3 * math.cos(t)
-
-    msg = f"{angle:.3f},{throttle:.3f}\n"
-    ser.write(msg.encode('utf-8'))
-
-    print("Sent:", msg.strip())
-
-    t += 0.1
-    time.sleep(0.05)
+# send to buffmata.py
+try: 
+    test_input = BuffMata(5,6)
+    x = 0 # Start at 0
+    while True:
+        throt_cmd = math.sin(x) # Output should range between -1 and 1
+        steer_cmd = math.sin(x) # Output should range between -1 and 1
+        print(f"Steering Input: {steer_cmd}, Throttle Input: {throt_cmd}")
+        test_input.run(steer_cmd, throt_cmd)
+        x += 0.1 # Increment x
+        time.sleep(0.05)
+except KeyboardInterrupt:
+    print("\nExiting")
+    test_input.shutdown()
