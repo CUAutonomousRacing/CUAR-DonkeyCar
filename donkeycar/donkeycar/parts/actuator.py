@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 #   and so you may choose is low max throttle pwm)
 #
 class BuffMata:
-    def __init__(self, STEERING_PIN, THROTTLE_PIN, port = '/dev/ttyTHS2', baud=115200, bytesize = 8):
+    def __init__(self, STEERING_PIN, THROTTLE_PIN, port = '/dev/ttyTHS1', baud=115200, bytesize = 8):
         try:
             self.ser = serial.Serial(port,baud,bytesize) # Open UART RX serial port
             time.sleep(0.05)
@@ -73,14 +73,13 @@ class BuffMata:
     def mapThrottlePWM(self, throttle):
         return 90 + throttle*30 # Full Throttle = 120 (1); Full Reverse = 70 (-1); Deadzone = 90-98 (0-ish)
     
-    def checkSum(self, packet): # Simple XOR Checksum
+    def checkSum(self, packet): # Simple XOR Checksum, might not be sufficient 
         cs = 0
         for byte in packet.encode():
             cs ^= byte
         return cs
     
     def run(self, steering, throttle):
-        # TO DO: Implement checksum?
         steering = self.mapSteerPWM(max(-1.0, min(1.0, steering))) # Clamping
         throttle = self.mapThrottlePWM(max(-1.0, min(1.0, throttle))) # Clamping
         cmd = f"{self.steeringPin},{int(steering)},{self.throttlePin},{int(throttle)}"

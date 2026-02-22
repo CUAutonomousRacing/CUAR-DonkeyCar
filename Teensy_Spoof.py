@@ -1,4 +1,4 @@
-from BuffMata import BuffMata
+from donkeycar.donkeycar.parts.BuffMata import BuffMata
 import serial
 import math
 import time

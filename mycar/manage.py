@@ -43,7 +43,7 @@ from donkeycar.parts.transform import Lambda
 from donkeycar.parts.pipe import Pipe
 from donkeycar.utils import *
 
-from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrottle
+from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrottle, BuffMata
 from docopt import docopt
 
 logger = logging.getLogger(__name__)
@@ -910,6 +910,9 @@ def add_imu(V, cfg):
 # Drive train setup
 #
 def add_drivetrain(V, cfg):
+    if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
+        drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN)
+        V.add(drivetrain, inputs=['user/angle','user/throttle'])
     if cfg.DRIVE_TRAIN_TYPE == "ARDUINO":
         arduino_controller = ArduinoFirmata(
             servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)

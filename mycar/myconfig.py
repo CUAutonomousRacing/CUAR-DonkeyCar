@@ -66,7 +66,6 @@ CSIC_CAM_GSTREAMER_FLIP_PARM = 6 # (0 => none , 4 => Flip horizontally, 6 => Fli
 # # (deprecated) "PIGPIO_PWM" uses Raspberrys internal PWM
 # # (deprecated) "I2C_SERVO" uses PCA9685 servo controller to control a steering servo and an ESC, as in a standard RC car
 # #
-DRIVE_TRAIN_TYPE = "ARDUINO"
 # 
 # #
 # # PWM_STEERING_THROTTLE
@@ -763,6 +762,9 @@ MODELS_PATH = os.path.join(CAR_PATH, 'models')
 DRIVE_LOOP_HZ = 20
 MAX_LOOPS = None
 
+# DRIVE_TRAIN_TYPE = "ARDUINO"
+
+DRIVE_TRAIN_TYPE = "BUFFMATA"
 #STEERING
 STEERING_ARDUINO_PIN = 6
 STEERING_ARDUINO_LEFT_PWM = 135
