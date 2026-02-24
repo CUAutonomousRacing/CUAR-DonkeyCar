@@ -716,13 +716,13 @@ DRIVE_TRAIN_TYPE = "ARDUINO"
 # PUB_CAMERA_IMAGES = False
 # 
 # #When racing, to give the ai a boost, configure these values.
-# AI_LAUNCH_DURATION = 0.0            # the ai will output throttle for this many seconds
-# AI_LAUNCH_THROTTLE = 0.0            # the ai will output this throttle value
+# AI_LAUNCH_DURATION = 3.0            # the ai will output throttle for this many seconds
+# AI_LAUNCH_THROTTLE = 0.5            # the ai will output this throttle value
 # AI_LAUNCH_ENABLE_BUTTON = 'R2'      # this keypress will enable this boost. It must be enabled before each use to prevent accidental trigger.
-# AI_LAUNCH_KEEP_ENABLED = False      # when False ( default) you will need to hit the AI_LAUNCH_ENABLE_BUTTON for each use. This is safest. When this True, is active on each trip into "local" ai mode.
+# AI_LAUNCH_KEEP_ENABLED = True      # when False ( default) you will need to hit the AI_LAUNCH_ENABLE_BUTTON for each use. This is safest. When this True, is active on each trip into "local" ai mode.
 # 
 # #Scale the output of the throttle of the ai pilot for all model types.
-# AI_THROTTLE_MULT = 1.0              # this multiplier will scale every throttle value for all output from NN models
+# AI_THROTTLE_MULT = 1.2              # this multiplier will scale every throttle value for all output from NN models
 # 
 # #Path following
 # PATH_FILENAME = "donkey_path.pkl"   # the path will be saved to this filename
@@ -733,7 +733,7 @@ DRIVE_TRAIN_TYPE = "ARDUINO"
 # PID_I = 0.000                       # integral mult for PID path follower
 # PID_D = -0.2                        # differential mult for PID path follower
 # PID_THROTTLE = 0.2                  # constant throttle value during path following
-# USE_CONSTANT_THROTTLE = False       # whether or not to use the constant throttle or variable throttle captured during path recording
+# USE_CONSTANT_THROTTLE = True       # whether or not to use the constant throttle or variable throttle captured during path recording
 # SAVE_PATH_BTN = "cross"             # joystick button to save path
 # RESET_ORIGIN_BTN = "triangle"       # joystick button to press to move car back to origin
 # 

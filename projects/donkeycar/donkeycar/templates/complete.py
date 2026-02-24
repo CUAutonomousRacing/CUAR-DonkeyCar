@@ -43,9 +43,6 @@ from donkeycar.parts.transform import Lambda
 from donkeycar.parts.pipe import Pipe
 from donkeycar.utils import *
 
-from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrottle
-from docopt import docopt
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -929,20 +926,6 @@ def add_imu(V, cfg):
 # Drive train setup
 #
 def add_drivetrain(V, cfg):
-    if cfg.DRIVE_TRAIN_TYPE == "ARDUINO":
-        arduino_controller = ArduinoFirmata(
-            servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)
-        steering = ArdPWMSteering(controller=arduino_controller,
-                                left_pulse=cfg.STEERING_ARDUINO_LEFT_PWM,
-                                right_pulse=cfg.STEERING_ARDUINO_RIGHT_PWM)
-
-        throttle = ArdPWMThrottle(controller=arduino_controller,
-                                max_pulse=cfg.THROTTLE_ARDUINO_FORWARD_PWM,
-                                zero_pulse=cfg.THROTTLE_ARDUINO_STOPPED_PWM,
-                                min_pulse=cfg.THROTTLE_ARDUINO_REVERSE_PWM)
-
-        V.add(steering, inputs=['steering'])
-        V.add(throttle, inputs=['throttle'])
 
     if (not cfg.DONKEY_GYM) and cfg.DRIVE_TRAIN_TYPE != "MOCK":
         from donkeycar.parts import actuator, pins
