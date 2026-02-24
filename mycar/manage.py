@@ -912,7 +912,7 @@ def add_imu(V, cfg):
 def add_drivetrain(V, cfg):
     if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
         drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN)
-        V.add(drivetrain, inputs=['user/angle','user/throttle'])
+        V.add(drivetrain, inputs=['steering','throttle'])
     if cfg.DRIVE_TRAIN_TYPE == "ARDUINO":
         arduino_controller = ArduinoFirmata(
             servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)
@@ -925,8 +925,8 @@ def add_drivetrain(V, cfg):
                                 zero_pulse=cfg.THROTTLE_ARDUINO_STOPPED_PWM,
                                 min_pulse=cfg.THROTTLE_ARDUINO_REVERSE_PWM)
 
-        V.add(steering, inputs=['user/angle'])
-        V.add(throttle, inputs=['user/throttle'])
+        V.add(steering, inputs=['steering'])
+        V.add(throttle, inputs=['throttle'])
 
     if (not cfg.DONKEY_GYM) and cfg.DRIVE_TRAIN_TYPE != "MOCK":
         from donkeycar.parts import actuator, pins
