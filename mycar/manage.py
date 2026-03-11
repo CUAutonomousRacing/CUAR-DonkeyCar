@@ -30,7 +30,7 @@ import donkeycar as dk
 from donkeycar.parts.transform import TriggeredCallback, DelayedTrigger
 from donkeycar.parts.tub_v2 import TubWriter
 from donkeycar.parts.datastore import TubHandler
-from donkeycar.parts.controller import LocalWebController, WebFpv, JoystickController
+from donkeycar.parts.controller import LocalWebController, WebFpv, JoystickController, Teensy_RC
 from donkeycar.parts.throttle_filter import ThrottleFilter
 from donkeycar.parts.behavior import BehaviorPart
 from donkeycar.parts.file_watcher import FileWatcher
@@ -45,9 +45,23 @@ from donkeycar.utils import *
 
 from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrottle, BuffMata
 from docopt import docopt
+import serial
+import time
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+port = '/dev/ttyTHS1'
+baud=115200
+bytesize = 8
+try:
+    serial_device = serial.Serial(port,baud,bytesize) # Open UART RX serial port
+    time.sleep(0.05)
+    print(f"{serial_device.name} opened successfully!") # Print name of serial port to console once opened
+except serial.SerialException as e:
+    print(f"Failed to open: {e}")
+    print("Exiting")
+    exit()
 
 
 def drive(cfg, model_path=None, use_joystick=False, model_type=None,
@@ -676,12 +690,15 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
     # This web controller will create a web server that is capable
     # of managing steering, throttle, and modes, and more.
     #
-    ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
-    V.add(ctr,
-          inputs=[input_image, 'tub/num_records', 'user/mode', 'recording'],
-          outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'web/buttons'],
-          threaded=True)
-
+    if cfg.CONTROLLER_TYPE == WEB_CONTROLLER:
+        ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
+        V.add(ctr,
+            inputs=[input_image, 'tub/num_records', 'user/mode', 'recording'],
+            outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'web/buttons'],
+            threaded=True)
+    if cfg.CONTROLLER_TYPE == TEENSY_RC:
+        ctr = Teensy_RC(serial_device)
+        V.add(ctr,outputs=['user/angle', 'user/throttle'])
     #
     # also add a physical controller if one is configured
     #
@@ -911,7 +928,7 @@ def add_imu(V, cfg):
 #
 def add_drivetrain(V, cfg):
     if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
-        drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN)
+        drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN, serial_device)
         V.add(drivetrain, inputs=['steering','throttle'])
     if cfg.DRIVE_TRAIN_TYPE == "ARDUINO":
         arduino_controller = ArduinoFirmata(
