@@ -690,15 +690,15 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
     # This web controller will create a web server that is capable
     # of managing steering, throttle, and modes, and more.
     #
-    if cfg.CONTROLLER_TYPE == WEB_CONTROLLER:
+    if cfg.CONTROLLER_TYPE == "WEB_CONTROLLER":
         ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
         V.add(ctr,
             inputs=[input_image, 'tub/num_records', 'user/mode', 'recording'],
             outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'web/buttons'],
             threaded=True)
-    if cfg.CONTROLLER_TYPE == TEENSY_RC:
+    if cfg.CONTROLLER_TYPE == "TEENSY_RC":
         ctr = Teensy_RC(serial_device)
-        V.add(ctr,outputs=['user/angle', 'user/throttle'])
+        V.add(ctr,inputs=['user/mode', 'recording'], outputs=['user/steering', 'user/throttle', 'user/mode', 'recording'], threaded=True)
     #
     # also add a physical controller if one is configured
     #
@@ -706,8 +706,6 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
         #
         # RC controller
         #
-        if cfg.CONTROLLER_TYPE == "Teensy_RC":
-            V.add(ctr,outputs=['user/angle', 'user/throttle'])
         if cfg.CONTROLLER_TYPE == "pigpio_rc":  # an RC controllers read by GPIO pins. They typically don't have buttons
             from donkeycar.parts.controller import RCReceiver
             ctr = RCReceiver(cfg)
