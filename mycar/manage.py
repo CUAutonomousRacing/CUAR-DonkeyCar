@@ -52,11 +52,13 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 port = '/dev/ttyTHS1'
-baud=115200
+baud=57600
 bytesize = 8
 try:
-    serial_device = serial.Serial(port,baud,bytesize) # Open UART RX serial port
-    time.sleep(0.05)
+    serial_device = serial.Serial(port,baud,bytesize,timeout=2) # Open UART RX serial port
+    serial_device.reset_input_buffer
+    serial_device.reset_output_buffer
+    time.sleep(0.5)
     print(f"{serial_device.name} opened successfully!") # Print name of serial port to console once opened
 except serial.SerialException as e:
     print(f"Failed to open: {e}")
@@ -118,7 +120,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     #
     # setup primary camera
     #
-    add_camera(V, cfg, camera_type)
+    #add_camera(V, cfg, camera_type)
 
 
     # add lidar
@@ -698,7 +700,7 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
             threaded=True)
     if cfg.CONTROLLER_TYPE == "TEENSY_RC":
         ctr = Teensy_RC(serial_device)
-        V.add(ctr,inputs=['user/mode', 'recording'], outputs=['user/steering', 'user/throttle', 'user/mode', 'recording'], threaded=True)
+        V.add(ctr, outputs=['user/steering', 'user/throttle'], threaded=True)
     #
     # also add a physical controller if one is configured
     #
