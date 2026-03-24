@@ -11,13 +11,13 @@ class Teensy_RC:
     def __init__(self, serial_device):
         try:
             self.ser = serial_device 
-            self.mode = 'user'
-            self.recording = False
+            # self.mode = 'user'
+            # self.recording = False
             self.steering = 0.0
             self.throttle = 0.0
             self.running = True
             self.lock = threading.Lock()
-            self.thread = threading.Thread(target=self.read_serial, daemon=True) # Start reading from serial
+            self.thread = threading.Thread(target=self.update, daemon=True) # Start reading from serial
             self.thread.start() # Start thread
             print("Teensy RC thread created successfully!")
         except:
@@ -50,24 +50,36 @@ class Teensy_RC:
             print("Full Teensy RC packet not detected. Returning.")
             return None
     
-    def read_serial(self):
+    def update(self):
+        packet_found = False
+        buffer = ""
         while self.running:
             try:
-                incomingData = self.ser.readline().decode('utf-8').strip() # Read from UART
-                commands = self.parsePacket(incomingData) # Read in our packet
-                if commands: # Only updates if commands are available
-                    with self.lock: # For thread safety
-                        self.steering = commands[0] # Update steering
-                        self.throttle = commands[1] # Update throttle
+                char = self.ser.read().decode('utf-8') # Read from Serial
+                print(f"Byte Decoded: {char}")
+                if(char == '<'):
+                    buffer += "<"
+                    packet_found = True
+                elif(packet_found):
+                    buffer += char
+                    if(char == '>'):
+                        commands = self.parsePacket(self.buffer) # Read in our packet
+                        packet_found = False
+                        buffer = ""
+                        if commands:
+                            print(f"Steering: {commands[0]}, Throttle: {commands[1]}")
+                            with self.lock: # For thread safety
+                                self.steering = commands[0] # Update steering
+                                self.throttle = commands[1] # Update throttle
             except:
                 print("No incoming control data detected.")
     
-    def run_threaded(self, mode, recording): # Required for threading by vehicle.py
+    def run_threaded(self): # Required for threading by vehicle.py
         with self.lock:
-            return self.steering, self.throttle, self.mode, self.recording
+            return self.steering, self.throttle
     
-    def run(self, mode, recording): # Required by vehicle.py
-        return self.run_threaded(mode, recording)
+    def run(self): # Required by vehicle.py
+        return self.run_threaded()
         
     def shutdown(self): # Required for threading by vehicle.py
         self.running = False
