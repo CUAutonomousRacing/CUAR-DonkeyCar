@@ -22,9 +22,11 @@ class Teensy_RC:
             self.steering = 0.0
             self.throttle = 0.0
             self.running = True
+            self.buffer = ""
+            self.packet_found = False
             self.lock = threading.Lock()
-            self.thread = threading.Thread(target=self.read_serial, daemon=True) # Start reading from serial
-            self.thread.start() # Start thread
+            # self.thread = threading.Thread(target=self.update, daemon=True) # Start reading from serial
+            # self.thread.start() # Start thread
             print("Teensy RC thread created successfully!")
         except:
             print("Failed to create Teensy RC")
@@ -36,17 +38,20 @@ class Teensy_RC:
             check_sum ^= ord(c)
         return int(received_check_sum) == check_sum
     
-    def parsePacket(self, incomingData):
-        full_packet_detected = False
-        packet_start_found = False
-        for c in incomingData: # Find frame delimiters to verify we actually received a full packet
-            if(c == '<'):
-                packet_start_found = True
-            if(packet_start_found and c == '>'):
-                full_packet_detected = True
-                incomingData = incomingData[1:-1] # Strip our frame delimiters
-                parsed_packet = incomingData.split('|') # Split into command data and checksum
-                break
+    def parsePacket(self, buffer):
+        #print(f"Buffer Received: {buffer} ")
+        full_packet_detected = True
+        #packet_start_found = False
+        buffer = buffer[1:-1] # Strip our frame delimiters
+        parsed_packet = buffer.split('|') # Split into command data and checksum
+        # for c in buffer: # Find frame delimiters to verify we actually received a full packet
+        #     if(c == '<'):
+        #         packet_start_found = True
+        #     if(packet_start_found and c == '>'):
+        #         full_packet_detected = True
+        #         buffer = buffer[1:-1] # Strip our frame delimiters
+        #         parsed_packet = buffer.split('|') # Split into command data and checksum
+        #         break
         if(full_packet_detected and self.verifyCheckSum(parsed_packet[0], parsed_packet[1])):
             commands = parsed_packet[0].split(',') # Split into Steering and Throttle values
             steering = commands[0] # Steering will be sent first, already turned into a +/- 1 value by the teensy for PWM
@@ -56,15 +61,33 @@ class Teensy_RC:
             print("Full Teensy RC packet not detected. Returning.")
             return None
     
-    def read_serial(self):
+    def update(self):
         while self.running:
             try:
-                incomingData = self.ser.readline().decode('utf-8').strip() # Read from UART
-                commands = self.parsePacket(incomingData) # Read in our packet
-                if commands: # Only updates if commands are available
-                    with self.lock: # For thread safety
-                        self.steering = commands[0] # Update steering
-                        self.throttle = commands[1] # Update throttle
+                char = self.ser.read().decode('utf-8')
+                #print(f"Byte Decoded: {char}")
+                if char == '<':
+                    #print("< found")
+                    self.buffer += "<"
+                    self.packet_found = True
+                elif (self.packet_found):
+                    self.buffer += char
+                    #print(f"Added to buffer: {char}")
+                    #print(f"Current Buffer: {buffer}")
+                    if char == '>':
+                        #print("> found")
+                        print(f"Full Packet: {self.buffer}")
+                        commands = self.parsePacket(self.buffer) # Read in our packet
+                        self.buffer = ""
+                        self.packet_found = False
+                        if commands: # Only updates if commands are available
+                            print(f"Steering: {commands[0]} Throttle: {commands[1]}")
+                            # self.steering = commands[0] # Update steering
+                            # self.throttle = commands[1] # Update throttle
+                            with self.lock: # For thread safety
+                                self.steering = commands[0] # Update steering
+                                self.throttle = commands[1] # Update throttle
+                
             except:
                 print("No incoming control data detected.")
     
@@ -74,6 +97,8 @@ class Teensy_RC:
     
     def run(self): # Required by vehicle.py
         return self.run_threaded()
+        # self.update()
+        # return self.steering, self.throttle
         
     def shutdown(self): # Required for threading by vehicle.py
         self.running = False
