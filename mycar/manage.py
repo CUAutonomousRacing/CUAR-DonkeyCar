@@ -909,21 +909,18 @@ def add_odometry(V, cfg, threaded=True):
                        'nul/timestamp'],
             threaded = threaded)
 
-
 #
 # IMU setup
 #
 def add_imu(V, cfg):
     imu = None
     if cfg.HAVE_IMU:
-        from donkeycar.parts.imu import IMU
+        from icm20649_part import ICM20649
 
-        imu = IMU(sensor=cfg.IMU_SENSOR, addr=cfg.IMU_ADDRESS,
-                  dlp_setting=cfg.IMU_DLP_CONFIG)
+        imu = ICM20649(poll_delay=0.0166)  # ~60Hz polling
         V.add(imu, outputs=['imu/acl_x', 'imu/acl_y', 'imu/acl_z',
                             'imu/gyr_x', 'imu/gyr_y', 'imu/gyr_z'], threaded=True)
     return imu
-
 
 #
 # Drive train setup
