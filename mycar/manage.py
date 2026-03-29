@@ -692,12 +692,12 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
     # This web controller will create a web server that is capable
     # of managing steering, throttle, and modes, and more.
     #
-    if cfg.CONTROLLER_TYPE == "WEB_CONTROLLER":
-        ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
-        V.add(ctr,
-            inputs=[input_image, 'tub/num_records', 'user/mode', 'recording'],
-            outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'web/buttons'],
-            threaded=True)
+    # if cfg.CONTROLLER_TYPE == "WEB_CONTROLLER":
+    #     ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
+    #     V.add(ctr,
+    #         inputs=[input_image, 'tub/num_records', 'user/mode', 'recording'],
+    #         outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'web/buttons'],
+    #         threaded=True)
     if cfg.CONTROLLER_TYPE == "TEENSY_RC":
         ctr = Teensy_RC(serial_device)
         V.add(ctr, outputs=['user/steering', 'user/throttle'], threaded=True)
@@ -929,7 +929,7 @@ def add_imu(V, cfg):
 def add_drivetrain(V, cfg):
     if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
         drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN, serial_device)
-        V.add(drivetrain, inputs=['steering','throttle'])
+        V.add(drivetrain, inputs=['user/steering','user/throttle'])
     if cfg.DRIVE_TRAIN_TYPE == "ARDUINO":
         arduino_controller = ArduinoFirmata(
             servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)
