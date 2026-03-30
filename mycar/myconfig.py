@@ -573,7 +573,7 @@ CSIC_CAM_GSTREAMER_FLIP_PARM = 6 # (0 => none , 4 => Flip horizontally, 6 => Fli
 # SEQUENCE_LENGTH = 3             #some models use a number of images over time. This controls how many.
 # 
 # #IMU
-# HAVE_IMU = False                #when true, this add a Mpu6050 part and records the data. Can be used with a
+HAVE_IMU = True                  # when true, this add a Mpu6050 part and records the data. Can be used with a
 # IMU_SENSOR = 'mpu6050'          # (mpu6050|mpu9250)
 # IMU_ADDRESS = 0x68              # if AD0 pin is pulled high them address is 0x69, otherwise it is 0x68
 # IMU_DLP_CONFIG = 0              # Digital Lowpass Filter setting (0:250Hz, 1:184Hz, 2:92Hz, 3:41Hz, 4:20Hz, 5:10Hz, 6:5Hz)
@@ -715,13 +715,13 @@ CSIC_CAM_GSTREAMER_FLIP_PARM = 6 # (0 => none , 4 => Flip horizontally, 6 => Fli
 # PUB_CAMERA_IMAGES = False
 # 
 # #When racing, to give the ai a boost, configure these values.
-# AI_LAUNCH_DURATION = 0.0            # the ai will output throttle for this many seconds
-# AI_LAUNCH_THROTTLE = 0.0            # the ai will output this throttle value
+# AI_LAUNCH_DURATION = 3.0            # the ai will output throttle for this many seconds
+# AI_LAUNCH_THROTTLE = 0.5            # the ai will output this throttle value
 # AI_LAUNCH_ENABLE_BUTTON = 'R2'      # this keypress will enable this boost. It must be enabled before each use to prevent accidental trigger.
-# AI_LAUNCH_KEEP_ENABLED = False      # when False ( default) you will need to hit the AI_LAUNCH_ENABLE_BUTTON for each use. This is safest. When this True, is active on each trip into "local" ai mode.
+# AI_LAUNCH_KEEP_ENABLED = True      # when False ( default) you will need to hit the AI_LAUNCH_ENABLE_BUTTON for each use. This is safest. When this True, is active on each trip into "local" ai mode.
 # 
 # #Scale the output of the throttle of the ai pilot for all model types.
-# AI_THROTTLE_MULT = 1.0              # this multiplier will scale every throttle value for all output from NN models
+# AI_THROTTLE_MULT = 1.2              # this multiplier will scale every throttle value for all output from NN models
 # 
 # #Path following
 # PATH_FILENAME = "donkey_path.pkl"   # the path will be saved to this filename
@@ -732,7 +732,7 @@ CSIC_CAM_GSTREAMER_FLIP_PARM = 6 # (0 => none , 4 => Flip horizontally, 6 => Fli
 # PID_I = 0.000                       # integral mult for PID path follower
 # PID_D = -0.2                        # differential mult for PID path follower
 # PID_THROTTLE = 0.2                  # constant throttle value during path following
-# USE_CONSTANT_THROTTLE = False       # whether or not to use the constant throttle or variable throttle captured during path recording
+# USE_CONSTANT_THROTTLE = True       # whether or not to use the constant throttle or variable throttle captured during path recording
 # SAVE_PATH_BTN = "cross"             # joystick button to save path
 # RESET_ORIGIN_BTN = "triangle"       # joystick button to press to move car back to origin
 # 
