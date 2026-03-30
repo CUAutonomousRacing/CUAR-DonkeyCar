@@ -53,17 +53,39 @@ logger = logging.getLogger(__name__)
 #   and so you may choose is low max throttle pwm)
 #
 class BuffMata:
-    def __init__(self, STEERING_PIN, THROTTLE_PIN, port = '/dev/ttyTHS1', baud=115200, bytesize = 8):
+    #def __init__(self, STEERING_PIN, THROTTLE_PIN, port = '/dev/ttyTHS1', baud=115200, bytesize = 8):
+    def __init__(self, STEERING_PIN, THROTTLE_PIN, serial_device):
         try:
-            self.ser = serial.Serial(port,baud,bytesize) # Open UART RX serial port
-            time.sleep(0.05)
-            print(f"{self.ser.name} opened successfully!") # Print name of serial port to console once opened
+            # self.ser = serial.Serial(port,baud,bytesize) # Open UART RX serial port
+            # time.sleep(0.05)
+            # print(f"{self.ser.name} opened successfully!") # Print name of serial port to console once opened
+            self.ser = serial_device
             self.steeringPin = STEERING_PIN
             self.throttlePin = THROTTLE_PIN
             self.running = True
+            print(r"""
+                                _.-````'-,_
+                      _,.,_ ,-'`           `'-.,_
+                    /)     (\                   '``-.
+                    ((      ) )                      `\
+                    \)    (_/                        )\
+                    |       /)           '    ,'    / \
+                    `\    ^'            '     (    /  ))
+                      |      _/\ ,     /    ,,`\   (  "`
+                       \Y,   |  \  \  | ````| / \_ \
+                        `)_/    \  \  )    ( >  ( >
+                                 \( \(     |/   |/
+                                /_(/_(    /_(  /_(
+                             ____  _   _   _    ____  
+                            / ___|| | | | / \  |  _ \ 
+                            | |   | | | |/ _ \ | |_) |
+                            | |___| |_| / ___ \|  _ < 
+                            \____| \___/_/   \_\_| \_\
+            
+                  """)
             print("BuffMata created")
-        except serial.SerialException as e:
-            print(f"Failed to open: {e}")
+        except:
+            print("Failed to create BuffMata")
             print("Exiting")
             exit()
     
@@ -100,8 +122,8 @@ class BuffMata:
         print("BuffMata Shutting Down")
 # Use this in add_drivetrain method in manage.py
 # if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
-#         drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN)
-#         V.add(drivetrain, inputs=['user/angle','user/throttle'])
+#         drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN, serial_device)
+#         V.add(drivetrain, inputs=['steering','throttle'])
 #################################################################
 def duty_cycle(pulse_ms:float, frequency_hz:float) -> float:
     """

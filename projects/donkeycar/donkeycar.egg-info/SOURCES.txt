@@ -27,8 +27,6 @@ donkeycar/management/joystick_creator.py
 donkeycar/management/kivy_ui.py
 donkeycar/management/makemovie.py
 donkeycar/management/tub.py
-donkeycar/parts/BuffMata.py
-donkeycar/parts/Teensy_RC.py
 donkeycar/parts/__init__.py
 donkeycar/parts/actuator.py
 donkeycar/parts/behavior.py

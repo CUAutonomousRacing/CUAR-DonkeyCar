@@ -30,7 +30,7 @@ import donkeycar as dk
 from donkeycar.parts.transform import TriggeredCallback, DelayedTrigger
 from donkeycar.parts.tub_v2 import TubWriter
 from donkeycar.parts.datastore import TubHandler
-from donkeycar.parts.controller import LocalWebController, WebFpv, JoystickController
+from donkeycar.parts.controller import LocalWebController, WebFpv, JoystickController, Teensy_RC
 from donkeycar.parts.throttle_filter import ThrottleFilter
 from donkeycar.parts.behavior import BehaviorPart
 from donkeycar.parts.file_watcher import FileWatcher
@@ -43,11 +43,27 @@ from donkeycar.parts.transform import Lambda
 from donkeycar.parts.pipe import Pipe
 from donkeycar.utils import *
 
-from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrottle
+from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrottle, BuffMata
 from docopt import docopt
+import serial
+import time
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+port = '/dev/ttyTHS1'
+baud=57600
+bytesize = 8
+try:
+    serial_device = serial.Serial(port,baud,bytesize,timeout=2) # Open UART RX serial port
+    serial_device.reset_input_buffer
+    serial_device.reset_output_buffer
+    time.sleep(0.5)
+    print(f"{serial_device.name} opened successfully!") # Print name of serial port to console once opened
+except serial.SerialException as e:
+    print(f"Failed to open: {e}")
+    print("Exiting")
+    exit()
 
 
 def drive(cfg, model_path=None, use_joystick=False, model_type=None,
@@ -104,7 +120,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     #
     # setup primary camera
     #
-    add_camera(V, cfg, camera_type)
+    #add_camera(V, cfg, camera_type)
 
 
     # add lidar
@@ -263,14 +279,8 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
             
             show_record_count_status()
 
-    #Sombrero
-    if cfg.HAVE_SOMBRERO:
-        from donkeycar.parts.sombrero import Sombrero
-        s = Sombrero()
-
     #IMU
     add_imu(V, cfg)
-
 
     # Use the FPV preview, which will show the cropped image output, or the full frame.
     if cfg.USE_FPV:
@@ -417,21 +427,6 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
         V.add(kl, inputs=inputs, outputs=outputs, run_condition='run_pilot')
 
-    #
-    # stop at a stop sign
-    #
-    if cfg.STOP_SIGN_DETECTOR:
-        from donkeycar.parts.object_detector.stop_sign_detector \
-            import StopSignDetector
-        V.add(StopSignDetector(cfg.STOP_SIGN_MIN_SCORE,
-                               cfg.STOP_SIGN_SHOW_BOUNDING_BOX,
-                               cfg.STOP_SIGN_MAX_REVERSE_COUNT,
-                               cfg.STOP_SIGN_REVERSE_THROTTLE),
-              inputs=['cam/image_array', 'pilot/throttle'],
-              outputs=['pilot/throttle', 'cam/image_array'])
-        V.add(ThrottleFilter(), 
-              inputs=['pilot/throttle'],
-              outputs=['pilot/throttle'])
 
     #
     # to give the car a boost when starting ai mode in a race.
@@ -697,12 +692,15 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
     # This web controller will create a web server that is capable
     # of managing steering, throttle, and modes, and more.
     #
-    ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
-    V.add(ctr,
-          inputs=[input_image, 'tub/num_records', 'user/mode', 'recording'],
-          outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'web/buttons'],
-          threaded=True)
-
+    # if cfg.CONTROLLER_TYPE == "WEB_CONTROLLER":
+    #     ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
+    #     V.add(ctr,
+    #         inputs=[input_image, 'tub/num_records', 'user/mode', 'recording'],
+    #         outputs=['user/steering', 'user/throttle', 'user/mode', 'recording', 'web/buttons'],
+    #         threaded=True)
+    if cfg.CONTROLLER_TYPE == "TEENSY_RC":
+        ctr = Teensy_RC(serial_device)
+        V.add(ctr, outputs=['user/steering', 'user/throttle'], threaded=True)
     #
     # also add a physical controller if one is configured
     #
@@ -929,6 +927,9 @@ def add_imu(V, cfg):
 # Drive train setup
 #
 def add_drivetrain(V, cfg):
+    if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
+        drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN, serial_device)
+        V.add(drivetrain, inputs=['user/steering','user/throttle'])
     if cfg.DRIVE_TRAIN_TYPE == "ARDUINO":
         arduino_controller = ArduinoFirmata(
             servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)

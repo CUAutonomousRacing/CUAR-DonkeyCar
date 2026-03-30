@@ -4,6 +4,7 @@ import time
 import struct
 import random
 from threading import Thread
+import threading
 import logging
 
 from prettytable import PrettyTable
@@ -13,6 +14,98 @@ from donkeycar.parts.web_controller.web import LocalWebController
 from donkeycar.parts.web_controller.web import WebFpv
 
 logger = logging.getLogger(__name__)
+
+class Teensy_RC:
+    def __init__(self, serial_device):
+        try:
+            self.ser = serial_device 
+            self.steering = 0.0
+            self.throttle = 0.0
+            self.running = True
+            self.buffer = ""
+            self.packet_found = False
+            self.lock = threading.Lock()
+            # self.thread = threading.Thread(target=self.update, daemon=True) # Start reading from serial
+            # self.thread.start() # Start thread
+            print("Teensy RC thread created successfully!")
+        except:
+            print("Failed to create Teensy RC")
+            exit()
+    
+    def verifyCheckSum(self, parsed_packet, received_check_sum):
+        check_sum = 0
+        for c in parsed_packet:
+            check_sum ^= ord(c)
+        return int(received_check_sum) == check_sum
+    
+    def parsePacket(self, buffer):
+        #print(f"Buffer Received: {buffer} ")
+        full_packet_detected = True
+        #packet_start_found = False
+        buffer = buffer[1:-1] # Strip our frame delimiters
+        parsed_packet = buffer.split('|') # Split into command data and checksum
+        # for c in buffer: # Find frame delimiters to verify we actually received a full packet
+        #     if(c == '<'):
+        #         packet_start_found = True
+        #     if(packet_start_found and c == '>'):
+        #         full_packet_detected = True
+        #         buffer = buffer[1:-1] # Strip our frame delimiters
+        #         parsed_packet = buffer.split('|') # Split into command data and checksum
+        #         break
+        if(full_packet_detected and self.verifyCheckSum(parsed_packet[0], parsed_packet[1])):
+            commands = parsed_packet[0].split(',') # Split into Steering and Throttle values
+            steering = commands[0] # Steering will be sent first, already turned into a +/- 1 value by the teensy for PWM
+            throttle = commands[1] # Throttle sent next, already turned into a +/- 1 value by the teensy for PWM
+            return float(steering), float(throttle)
+        else:
+            print("Full Teensy RC packet not detected. Returning.")
+            return None
+    
+    def update(self):
+        while self.running:
+            try:
+                char = self.ser.read().decode('utf-8')
+                #print(f"Byte Decoded: {char}")
+                if char == '<':
+                    #print("< found")
+                    self.buffer += "<"
+                    self.packet_found = True
+                elif (self.packet_found):
+                    self.buffer += char
+                    #print(f"Added to buffer: {char}")
+                    #print(f"Current Buffer: {buffer}")
+                    if char == '>':
+                        #print("> found")
+                        print(f"Full Packet: {self.buffer}")
+                        commands = self.parsePacket(self.buffer) # Read in our packet
+                        self.buffer = ""
+                        self.packet_found = False
+                        if commands: # Only updates if commands are available
+                            print(f"Steering: {commands[0]} Throttle: {commands[1]}")
+                            # self.steering = commands[0] # Update steering
+                            # self.throttle = commands[1] # Update throttle
+                            with self.lock: # For thread safety
+                                self.steering = commands[0] # Update steering
+                                self.throttle = commands[1] # Update throttle
+                
+            except:
+                print("No incoming control data detected.")
+    
+    def run_threaded(self): # Required for threading by vehicle.py
+        with self.lock:
+            return self.steering, self.throttle
+    
+    def run(self): # Required by vehicle.py
+        return self.run_threaded()
+        # self.update()
+        # return self.steering, self.throttle
+        
+    def shutdown(self): # Required for threading by vehicle.py
+        self.running = False
+        print("Teensy_RC Shutting Down")
+
+# update python dictionary channel members /user/steering and /user/throttle with steering and throttle
+# so frames are hopefully synced (need to find a way to guarantee this)
 
 class Joystick(object):
     '''

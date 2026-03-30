@@ -12,6 +12,29 @@ class BuffMata:
             self.steeringPin = STEERING_PIN
             self.throttlePin = THROTTLE_PIN
             self.running = True
+<<<<<<< HEAD
+=======
+            print(r"""
+                               _.-````'-,_
+                      _,.,_ ,-'`           `'-.,_
+                    /)     (\                   '``-.
+                    ((      ) )                      `\
+                    \)    (_/                        )\
+                    |       /)           '    ,'    / \
+                    `\    ^'            '     (    /  ))
+                      |      _/\ ,     /    ,,`\   (  "`
+                       \Y,   |  \  \  | ````| / \_ \
+                        `)_/    \  \  )    ( >  ( >
+                                 \( \(     |/   |/
+                                /_(/_(    /_(  /_(
+                             ____  _   _   _    ____  
+                            / ___|| | | | / \  |  _ \ 
+                            | |   | | | |/ _ \ | |_) |
+                            | |___| |_| / ___ \|  _ < 
+                            \____| \___/_/   \_\_| \_\
+            
+                  """)
+>>>>>>> 0fbbece198e6f5e7bdf2f4474a45c3c6a0711783
             print("BuffMata created")
         except serial.SerialException as e:
             print(f"Failed to open: {e}")
