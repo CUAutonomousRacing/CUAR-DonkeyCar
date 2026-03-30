@@ -24,9 +24,9 @@ class Teensy_RC:
             self.running = True
             self.buffer = ""
             self.packet_found = False
+            self.recording = False
+            self.mode = 'user'
             self.lock = threading.Lock()
-            # self.thread = threading.Thread(target=self.update, daemon=True) # Start reading from serial
-            # self.thread.start() # Start thread
             print("Teensy RC thread created successfully!")
         except:
             print("Failed to create Teensy RC")
@@ -44,18 +44,14 @@ class Teensy_RC:
         #packet_start_found = False
         buffer = buffer[1:-1] # Strip our frame delimiters
         parsed_packet = buffer.split('|') # Split into command data and checksum
-        # for c in buffer: # Find frame delimiters to verify we actually received a full packet
-        #     if(c == '<'):
-        #         packet_start_found = True
-        #     if(packet_start_found and c == '>'):
-        #         full_packet_detected = True
-        #         buffer = buffer[1:-1] # Strip our frame delimiters
-        #         parsed_packet = buffer.split('|') # Split into command data and checksum
-        #         break
         if(full_packet_detected and self.verifyCheckSum(parsed_packet[0], parsed_packet[1])):
             commands = parsed_packet[0].split(',') # Split into Steering and Throttle values
             steering = commands[0] # Steering will be sent first, already turned into a +/- 1 value by the teensy for PWM
             throttle = commands[1] # Throttle sent next, already turned into a +/- 1 value by the teensy for PWM
+            if(commands[2] == 'R'): # Recording Mode ("R" == Recording, "U" == Not Recording)
+                self.recording = True
+            elif(commands[2] == 'U'):
+                self.recording = False
             return float(steering), float(throttle)
         else:
             print("Full Teensy RC packet not detected. Returning.")
@@ -65,35 +61,29 @@ class Teensy_RC:
         while self.running:
             try:
                 char = self.ser.read().decode('utf-8')
-                #print(f"Byte Decoded: {char}")
                 if char == '<':
-                    #print("< found")
                     self.buffer += "<"
                     self.packet_found = True
                 elif (self.packet_found):
                     self.buffer += char
-                    #print(f"Added to buffer: {char}")
-                    #print(f"Current Buffer: {buffer}")
                     if char == '>':
-                        #print("> found")
-                        print(f"Full Packet: {self.buffer}")
+                        # print(f"Full Packet: {self.buffer}")
                         commands = self.parsePacket(self.buffer) # Read in our packet
                         self.buffer = ""
                         self.packet_found = False
                         if commands: # Only updates if commands are available
-                            print(f"Steering: {commands[0]} Throttle: {commands[1]}")
-                            # self.steering = commands[0] # Update steering
-                            # self.throttle = commands[1] # Update throttle
+                            print(f"Steering: {commands[0]} Throttle: {commands[1]} Mode: {commands[2]}")
                             with self.lock: # For thread safety
                                 self.steering = commands[0] # Update steering
                                 self.throttle = commands[1] # Update throttle
+                                self.recording = commands[2] # Update recording mode
                 
             except:
                 print("No incoming control data detected.")
     
     def run_threaded(self): # Required for threading by vehicle.py
         with self.lock:
-            return self.steering, self.throttle
+            return self.steering, self.throttle, self.mode, self.recording
     
     def run(self): # Required by vehicle.py
         return self.run_threaded()
