@@ -926,7 +926,7 @@ def add_imu(V, cfg):
 def add_drivetrain(V, cfg):
     if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
         drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN, serial_device)
-        V.add(drivetrain, inputs=['user/steering','user/throttle'])
+        V.add(drivetrain, inputs=['steering','throttle'])
     if cfg.DRIVE_TRAIN_TYPE == "ARDUINO":
         arduino_controller = ArduinoFirmata(
             servo_pin=cfg.STEERING_ARDUINO_PIN, esc_pin=cfg.THROTTLE_ARDUINO_PIN)
