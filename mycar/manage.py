@@ -700,7 +700,7 @@ def add_user_controller(V, cfg, use_joystick, input_image='ui/image_array'):
     #         threaded=True)
     if cfg.CONTROLLER_TYPE == "TEENSY_RC":
         ctr = Teensy_RC(serial_device)
-        V.add(ctr, outputs=['user/steering', 'user/throttle','user/mode','recording'], threaded=True)
+        V.add(ctr, outputs=['user/steering', 'user/throttle','recording','user/mode'], threaded=True)
     #
     # also add a physical controller if one is configured
     #

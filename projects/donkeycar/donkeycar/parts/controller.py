@@ -33,9 +33,12 @@ class Teensy_RC:
             exit()
     
     def verifyCheckSum(self, parsed_packet, received_check_sum):
+        print(f"Received CS: {received_check_sum}")
+        print(f"Received Packet: {parsed_packet}")
         check_sum = 0
         for c in parsed_packet:
             check_sum ^= ord(c)
+        print(f"Check Sum: {check_sum}")
         return int(received_check_sum) == check_sum
     
     def parsePacket(self, buffer):
@@ -48,10 +51,10 @@ class Teensy_RC:
             commands = parsed_packet[0].split(',') # Split into Steering and Throttle values
             steering = commands[0] # Steering will be sent first, already turned into a +/- 1 value by the teensy for PWM
             throttle = commands[1] # Throttle sent next, already turned into a +/- 1 value by the teensy for PWM
-            if(commands[2] == 'R'): # Recording Mode ("R" == Recording, "U" == Not Recording)
-                self.recording = True
-            elif(commands[2] == 'U'):
-                self.recording = False
+            # if(commands[2] == 'R'): # Recording Mode ("R" == Recording, "U" == Not Recording)
+            #     self.recording = True
+            # elif(commands[2] == 'U'):
+            #     self.recording = False
             return float(steering), float(throttle)
         else:
             print("Full Teensy RC packet not detected. Returning.")
@@ -67,7 +70,7 @@ class Teensy_RC:
                 elif (self.packet_found):
                     self.buffer += char
                     if char == '>':
-                        # print(f"Full Packet: {self.buffer}")
+                        print(f"Full Packet: {self.buffer}")
                         commands = self.parsePacket(self.buffer) # Read in our packet
                         self.buffer = ""
                         self.packet_found = False
@@ -76,14 +79,14 @@ class Teensy_RC:
                             with self.lock: # For thread safety
                                 self.steering = commands[0] # Update steering
                                 self.throttle = commands[1] # Update throttle
-                                self.recording = commands[2] # Update recording mode
+                                #self.recording = commands[2] # Update recording mode
                 
             except:
                 print("No incoming control data detected.")
     
     def run_threaded(self): # Required for threading by vehicle.py
         with self.lock:
-            return self.steering, self.throttle, self.mode, self.recording
+            return self.steering, self.throttle, self.recording, self.mode
     
     def run(self): # Required by vehicle.py
         return self.run_threaded()
