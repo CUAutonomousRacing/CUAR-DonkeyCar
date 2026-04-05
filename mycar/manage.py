@@ -53,6 +53,8 @@ REMOVESIM = 0
 REMOVECAMERA = 0
 REMOVEIMU = 0
 
+REMOVEWEATHERINPUT = 1
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -130,6 +132,9 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     #
     if (not REMOVECAMERA):
         add_camera(V, cfg, camera_type)
+
+    if (not REMOVEWEATHERINPUT):
+     vanshicode=0
 
 
     # add lidar
