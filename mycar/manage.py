@@ -48,6 +48,12 @@ from docopt import docopt
 import serial
 import time
 
+# Testing Macros
+REMOVESIM = 0
+REMOVECAMERA = 0
+REMOVEIMU = 0
+
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -108,19 +114,22 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     #
     # if we are using the simulator, set it up
     #
-    add_simulator(V, cfg)
+    if (not REMOVESIM):
+        add_simulator(V, cfg)
 
 
     #
     # setup encoders, odometry and pose estimation
     #
-    add_odometry(V, cfg)
+    if (not REMOVEIMU):
+        add_odometry(V, cfg)
 
 
     #
     # setup primary camera
     #
-    #add_camera(V, cfg, camera_type)
+    if (not REMOVECAMERA):
+        add_camera(V, cfg, camera_type)
 
 
     # add lidar

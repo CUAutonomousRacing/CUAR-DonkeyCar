@@ -46,7 +46,7 @@ class ICM20649:
             self.gyro_x = gyro[0]
             #print(f"X(pitch): {self.gyro_x}")
             self.gyro_y = gyro[1]
-            print(f"Y(roll): {self.gyro_y}")
+            #print(f"Y(roll): {self.gyro_y}")
             self.gyro_z = gyro[2]
             #print(f"Z(yaw): {self.gyro_z}")
             

@@ -48,7 +48,7 @@ class Teensy_RC:
             commands = parsed_packet[0].split(',') # Split into Steering and Throttle values
             steering = float(commands[0]) # Steering will be sent first, already turned into a +/- 1 value by the teensy for PWM
             throttle = float(commands[1]) # Throttle sent next, already turned into a +/- 1 value by the teensy for PWM
-            recording = bool(commands[2]) # Recording Mode (1 == Recording, 0 == Not Recording)
+            recording = int(commands[2]) # Recording Mode (1 == Recording, 0 == Not Recording)
             return steering, throttle, recording
         else:
             print("Full Teensy RC packet not detected. Returning.")
