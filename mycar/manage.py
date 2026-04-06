@@ -123,8 +123,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     #
     # setup encoders, odometry and pose estimation
     #
-    if (not REMOVEIMU):
-        add_odometry(V, cfg)
+    add_odometry(V, cfg)
 
 
     #
@@ -290,10 +289,12 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
             show_record_count_status()
 
     #IMU
-    add_imu(V, cfg)
+    if (not REMOVEIMU):
+        add_imu(V, cfg)
+
 
     # Weather Input
-    if cfg.HAVE_WEATHER_INPUT:
+    if (not REMOVEWEATHERINPUT):
         from weather_part import WeatherInput
         weather = WeatherInput(default_weather=cfg.DEFAULT_WEATHER)
         V.add(weather, outputs=['weather/code'])
