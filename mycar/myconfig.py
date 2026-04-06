@@ -788,3 +788,13 @@ NETWORK_JS_SERVER_IP = "192.168.0.1"#when listening for network joystick control
 JOYSTICK_DEADZONE = 0.0             # when non zero, this is the smallest throttle before recording triggered.
 JOYSTICK_THROTTLE_DIR = -1.0        # use -1.0 to flip forward/backward, use 1.0 to use joystick's natural forward/backward
 USE_FPV = False                     # send camera data to FPV webserver
+
+# Weather Input
+HAVE_WEATHER_INPUT = True  # Change to true when ready to test
+DEFAULT_WEATHER = 0  # 0=sunny, 1=cloudy, 2=light_rain, 3=heavy_rain
+
+# Weather codes for reference:
+# 0 = Sunny/Clear (dry track, high friction)
+# 1 = Cloudy (dry track, normal conditions)
+# 2 = Light Rain (wet track, reduced friction)
+# 3 = Heavy Rain (very wet, low visibility)

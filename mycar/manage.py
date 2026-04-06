@@ -53,7 +53,7 @@ REMOVESIM = 0
 REMOVECAMERA = 0
 REMOVEIMU = 0
 
-REMOVEWEATHERINPUT = 1
+REMOVEWEATHERINPUT = 0
 
 
 logger = logging.getLogger(__name__)
@@ -132,10 +132,6 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     #
     if (not REMOVECAMERA):
         add_camera(V, cfg, camera_type)
-
-    if (not REMOVEWEATHERINPUT):
-     vanshicode=0
-
 
     # add lidar
     if cfg.USE_LIDAR:
@@ -295,6 +291,12 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
     #IMU
     add_imu(V, cfg)
+
+    # Weather Input
+    if cfg.HAVE_WEATHER_INPUT:
+        from weather_part import WeatherInput
+        weather = WeatherInput(default_weather=cfg.DEFAULT_WEATHER)
+        V.add(weather, outputs=['weather/code'])
 
     # Use the FPV preview, which will show the cropped image output, or the full frame.
     if cfg.USE_FPV:
@@ -517,6 +519,10 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
         types +=['float', 'float', 'float',
            'float', 'float', 'float']
+    # Add weather code to recording
+    if cfg.HAVE_WEATHER_INPUT:
+        inputs += ['weather/code']
+        types += ['int']
 
     # rbx
     if cfg.DONKEY_GYM:
