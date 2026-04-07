@@ -1,9 +1,10 @@
 import os
 import array
 import time
+import sys
 import struct
 import random
-from threading import Thread
+from threading import Thread, Timer
 import threading
 import logging
 
@@ -14,6 +15,28 @@ from donkeycar.parts.web_controller.web import LocalWebController
 from donkeycar.parts.web_controller.web import WebFpv
 
 logger = logging.getLogger(__name__)
+
+class Watchdog(Exception):
+    def __init__(self, timeout, userHandler=None):  # timeout in seconds
+        self.timeout = timeout
+        self.handler = userHandler if userHandler is not None else self.defaultHandler
+        self.timer = Timer(self.timeout, self.handler)
+        self.timer.start()
+
+    def reset(self):
+        self.timer.cancel()
+        self.timer = Timer(self.timeout, self.handler)
+        self.timer.start()
+
+    def stop(self):
+        self.timer.cancel()
+
+    def defaultHandler(self):
+        raise self
+
+def myHandler():
+  print("Whoa! Watchdog expired. Holy heavens!")
+  sys.exit()
 
 class Teensy_RC:
     def __init__(self, serial_device):
@@ -55,6 +78,7 @@ class Teensy_RC:
             return None
     
     def update(self):
+        watchdog = Watchdog(10, myHandler)
         while self.running:
             try:
                 char = self.ser.read().decode('utf-8')
@@ -69,6 +93,7 @@ class Teensy_RC:
                         self.buffer = ""
                         self.packet_found = False
                         if commands: # Only updates if commands are available
+                            watchdog.reset()
                             print(f"Steering: {commands[0]} Throttle: {commands[1]} Recording: {commands[2]}")
                             with self.lock: # For thread safety
                                 self.steering = commands[0] # Update steering
