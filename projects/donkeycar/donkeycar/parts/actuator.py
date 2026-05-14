@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 #
 # pwm/duty-cycle/pulse
-# - Standard RC servo pulses range from 1 millisecond (full reverse)
+# - Standard RC servo pulses range from 1 millisecond (full reverse)f"Buffmata Sends: {packet}")
 #   to 2 milliseconds (full forward) with 1.5 milliseconds being neutral (stopped).
 # - These pulses are typically send at 50 hertz (every 20 milliseconds).
 # - This means that, using the standard 50hz frequency, a 1 ms pulse
@@ -54,14 +54,16 @@ logger = logging.getLogger(__name__)
 #
 class BuffMata:
     #def __init__(self, STEERING_PIN, THROTTLE_PIN, port = '/dev/ttyTHS1', baud=115200, bytesize = 8):
-    def __init__(self, STEERING_PIN, THROTTLE_PIN, serial_device):
+    def __init__(self, MAX_THROTTLE, serial_device):
         try:
             # self.ser = serial.Serial(port,baud,bytesize) # Open UART RX serial port
             # time.sleep(0.05)
             # print(f"{self.ser.name} opened successfully!") # Print name of serial port to console once opened
             self.ser = serial_device
-            self.steeringPin = STEERING_PIN
-            self.throttlePin = THROTTLE_PIN
+            self.steeringPin = 6
+            self.throttlePin = 1
+            self.MAXTHROTTLE = MAX_THROTTLE
+            self.MAXBRAKE = 100
             self.running = True
             print(r"""
                                 _.-````'-,_
@@ -93,7 +95,10 @@ class BuffMata:
         return 90 + steering*45 # Full Left = 45 (-1); Full Right = 135 (1); Center = 90 (0)
     
     def mapThrottlePWM(self, throttle):
-        return 90 + throttle*30 # Full Throttle = 120 (1); Full Reverse = 70 (-1); Deadzone = 90-98 (0-ish)
+        if throttle < 0:
+            return throttle*self.MAXBRAKE # 0-100 (0 no brake, 100 full brake)
+        else:
+            return throttle*self.MAXTHROTTLE # Full Throttle = 255, but 120 for safety (1)
     
     def checkSum(self, packet): # Simple XOR Checksum, might not be sufficient 
         cs = 0
@@ -104,9 +109,15 @@ class BuffMata:
     def run(self, steering, throttle):
         steering = self.mapSteerPWM(max(-1.0, min(1.0, steering))) # Clamping
         throttle = self.mapThrottlePWM(max(-1.0, min(1.0, throttle))) # Clamping
+        if throttle < 0:
+            self.throttlePin = 0
+        else:
+            self.throttlePin = 1
         cmd = f"{self.steeringPin},{int(steering)},{self.throttlePin},{int(throttle)}"
+        
         cs = self.checkSum(cmd) # Checksum for packet loss validation
         packet = f"<{cmd}|{cs}>\n" 
+        # print(f"Buffmata Sends: {packet}")
         # '<' packet start; {steerpin,steerPWM,throttlepin,throttlePWM}; '|' Cmd/cs Delimiter; '>' packet end; '\n' for marking end of line
         self.ser.write(packet.encode())
 

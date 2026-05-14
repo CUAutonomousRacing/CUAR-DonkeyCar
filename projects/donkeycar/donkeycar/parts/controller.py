@@ -78,7 +78,7 @@ class Teensy_RC:
             return None
     
     def update(self):
-        watchdog = Watchdog(10, myHandler)
+        watchdog = Watchdog(30, myHandler)
         while self.running:
             try:
                 char = self.ser.read().decode('utf-8')
@@ -102,6 +102,8 @@ class Teensy_RC:
                 
             except Exception as e:
                 print("No incoming control data detected: {e}")
+                # self.ser.reset_input_buffer
+                # self.ser.reset_output_buffer
     
     def run_threaded(self): # Required for threading by vehicle.py
         with self.lock:

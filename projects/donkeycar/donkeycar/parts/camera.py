@@ -5,6 +5,8 @@ import numpy as np
 from PIL import Image
 import glob
 from donkeycar.utils import rgb2gray
+import depthai as dai
+import threading
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -86,112 +88,43 @@ class PiCamera(BaseCamera):
         self.camera = None
 
 
-class Webcam(BaseCamera):
-    def __init__(self, image_w=160, image_h=120, image_d=3, framerate = 20, camera_index = 0):
-        #
-        # pygame is not installed by default.
-        # Installation on RaspberryPi (with env activated):
-        #
-        # sudo apt-get install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
-        # pip install pygame
-        #
+class Webcam(BaseCamera):  #Oakcamera
+    def __init__(self, image_w=224, image_h= 224, image_d=3, framerate=30, **kwargs):
         super().__init__()
-        self.cam = None
-        self.framerate = framerate
-
-        # initialize variable used to indicate
-        # if the thread should be stopped
-        self.frame = None
-        self.image_d = image_d
-        self.image_w = image_w
-        self.image_h = image_h
-
-        self.init_camera(image_w, image_h, image_d, camera_index)
+        pipeline = dai.Pipeline()
+        cam = pipeline.create(dai.node.ColorCamera)
+        xout = pipeline.create(dai.node.XLinkOut)
+        self.lock = threading.Lock()
         self.on = True
+        with self.lock:
+            cam.setPreviewSize(image_w, image_h)
+            cam.setInterleaved(False)
+            cam.setFps(30)
 
-    def init_camera(self, image_w, image_h, image_d, camera_index=0):
-        try:
-            import pygame
-            import pygame.camera
-        except ModuleNotFoundError as e:
-            logger.error("Unable to import pygame.  Try installing it:\n"
-                         "    sudo apt-get install libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0\n"
-                         "    pip install pygame")
-            raise e
+        cam.initialControl.setManualFocus(120)
 
-        logger.info('Opening Webcam...')
+        xout.setStreamName("preview")
+        cam.preview.link(xout.input)
 
-        self.resolution = (image_w, image_h)
-
-        try:
-            pygame.init()
-            pygame.camera.init()
-            l = pygame.camera.list_cameras()
-
-            if len(l) == 0:
-                raise CameraError("There are no cameras available")
-
-            logger.info(f'Available cameras {l}')
-            if camera_index < 0 or camera_index >= len(l):
-                raise CameraError(f"The 'CAMERA_INDEX={camera_index}' configuration in myconfig.py is out of range.")
-
-            self.cam = pygame.camera.Camera(l[camera_index], self.resolution, "RGB")
-            self.cam.start()
-
-            logger.info(f'Webcam opened at {l[camera_index]} ...')
-            warming_time = time.time() + 5  # quick after 5 seconds
-            while self.frame is None and time.time() < warming_time:
-                logger.info("...warming camera")
-                self.run()
-                time.sleep(0.2)
-
-            if self.frame is None:
-                raise CameraError("Unable to start Webcam.\n"
-                                   "If more than one camera is available then"
-                                   " make sure your 'CAMERA_INDEX' is correct in myconfig.py")
-
-        except CameraError:
-            raise
-        except Exception as e:
-            raise CameraError("Unable to open Webcam.\n"
-                               "If more than one camera is available then"
-                               " make sure your 'CAMERA_INDEX' is correct in myconfig.py") from e
-        logger.info("Webcam ready.")
-
-    def run(self):
-        import pygame.image
-        if self.cam.query_image():
-            snapshot = self.cam.get_image()
-            if snapshot is not None:
-                snapshot1 = pygame.transform.scale(snapshot, self.resolution)
-                self.frame = pygame.surfarray.pixels3d(pygame.transform.rotate(pygame.transform.flip(snapshot1, True, False), 90))
-                if self.image_d == 1:
-                    self.frame = rgb2gray(frame)
-
-        return self.frame
-
-    def update(self):	
-        from datetime import datetime, timedelta
+        self.device = dai.Device(pipeline)
+        self.queue = self.device.getOutputQueue("preview", maxSize=1,blocking=False)
+        self.frame = None
+    
+    def update(self):
         while self.on:
-            start = datetime.now()
-            self.run()
-            stop = datetime.now()
-            s = 1 / self.framerate - (stop - start).total_seconds()
-            if s > 0:
-                time.sleep(s)
-
-
-    def run_threaded(self):
+            self.frame = self.queue.get()
+        
+    
+    # def run_threaded(self):
+    #     with self.lock:
+    #         return self.frame
+    
+    def run(self):
         return self.frame
-
+    
     def shutdown(self):
-        # indicate that the thread should be stopped
         self.on = False
-        if self.cam:
-            logger.info('stopping Webcam')
-            self.cam.stop()
-            self.cam = None
-        time.sleep(.5)
+        self.device.close()
 
 
 class CSICamera(BaseCamera):
@@ -294,7 +227,7 @@ class V4LCamera(BaseCamera):
         import v4l2capture
 
         self.video = v4l2capture.Video_device(self.dev_fn)
-
+        
         # Suggest an image size to the device. The device may choose and
         # return another size if it doesn't support the suggested one.
         self.size_x, self.size_y = self.video.set_format(self.image_w, self.image_h, fourcc=self.fourcc)

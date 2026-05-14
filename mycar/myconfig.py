@@ -20,16 +20,16 @@
 # MAX_LOOPS = None        # the vehicle loop can abort after this many iterations, when given a positive integer.
 # 
 # #CAMERA
-CAMERA_TYPE = "CSIC"   # (PICAM|WEBCAM|CVCAM|CSIC|V4L|D435|MOCK|IMAGE_LIST)
-# IMAGE_W = 3280
-# IMAGE_H = 2464
+CAMERA_TYPE = "OAKD2"   # (PICAM|WEBCAM|CVCAM|CSIC|V4L|D435|MOCK|IMAGE_LIST)
+IMAGE_W = 224
+IMAGE_H = 224
 # IMAGE_DEPTH = 3         # default RGB=3, make 1 for mono
-# CAMERA_FRAMERATE = 5
+CAMERA_FRAMERATE = 30
 # CAMERA_VFLIP = False
 # CAMERA_HFLIP = False
 # CAMERA_INDEX = 0  # used for 'WEBCAM' and 'CVCAM' when there is more than one camera connected 
 # # For CSIC camera - If the camera is mounted in a rotated position, changing the below parameter will correct the output frame orientation
-CSIC_CAM_GSTREAMER_FLIP_PARM = 6 # (0 => none , 4 => Flip horizontally, 6 => Flip vertically)
+###CSIC_CAM_GSTREAMER_FLIP_PARM = 6 # (0 => none , 4 => Flip horizontally, 6 => Flip vertically)
 # BGR2RGB = False  # true to convert from BRG format to RGB format; requires opencv
 # SHOW_PILOT_IMAGE = False  # show the image used to do the inference when in autopilot mode
 # 
@@ -771,10 +771,11 @@ STEERING_ARDUINO_LEFT_PWM = 135
 STEERING_ARDUINO_RIGHT_PWM = 45
 
 #THROTTLE
-THROTTLE_ARDUINO_PIN = 5
-THROTTLE_ARDUINO_FORWARD_PWM = 120
-THROTTLE_ARDUINO_STOPPED_PWM = 90
-THROTTLE_ARDUINO_REVERSE_PWM = 75
+MAXTHROTTLE = 130
+# THROTTLE_ARDUINO_PIN = 5
+# THROTTLE_ARDUINO_FORWARD_PWM = 120
+# THROTTLE_ARDUINO_STOPPED_PWM = 0
+#THROTTLE_ARDUINO_REVERSE_PWM = 75
 
 #JOYSTICK
 USE_JOYSTICK_AS_DEFAULT = False     #when starting the manage.py, when True, will not require a --js option to use the joystick

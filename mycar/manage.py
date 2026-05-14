@@ -21,7 +21,7 @@ from docopt import docopt
 # see https://github.com/opencv/opencv/issues/14884#issuecomment-599852128
 #
 try:
-    import cv2
+    import cv2print
 except:
     pass
 
@@ -47,10 +47,11 @@ from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrot
 from docopt import docopt
 import serial
 import time
+from donkeycar.parts.Oak_D2 import oakD2
 
 # Testing Macros
 REMOVESIM = 0
-REMOVECAMERA = 1
+REMOVECAMERA = 0
 REMOVEIMU = 0
 
 REMOVEWEATHERINPUT = 0
@@ -59,11 +60,12 @@ REMOVEWEATHERINPUT = 0
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-port = '/dev/ttyTHS1'
+# port = '/dev/ttyTHS1'
+port = '/dev/ttyACM0'
 baud=57600
 bytesize = 8
 try:
-    serial_device = serial.Serial(port,baud,bytesize,timeout=2) # Open UART RX serial port
+    serial_device = serial.Serial(port,baud,bytesize,timeout=0,write_timeout=2,inter_byte_timeout=1) # Open UART RX serial port
     serial_device.reset_input_buffer
     serial_device.reset_output_buffer
     time.sleep(0.5)
@@ -75,7 +77,7 @@ except serial.SerialException as e:
 
 
 def drive(cfg, model_path=None, use_joystick=False, model_type=None,
-          camera_type='single', meta=[]):
+          camera_type='stereo', meta=[]):
     """
     Construct a working robotic vehicle from many parts. Each part runs as a
     job in the Vehicle loop, calling either it's run or run_threaded method
@@ -857,14 +859,18 @@ def add_camera(V, cfg, camera_type):
     :param cfg: the configuration (from myconfig.py)
     """
     logger.info("cfg.CAMERA_TYPE %s"%cfg.CAMERA_TYPE)
+    if cfg.CAMERA_TYPE == "OAKD2":
+        # from donkeycar.parts.camera import Webcam
+        cam = oakD2(width = 224, height = 244)
+        V.add(cam, outputs = ['cam/image_array'], threaded=True)
+        return
+    
     if camera_type == "stereo":
-        if cfg.CAMERA_TYPE == "WEBCAM":
-            from donkeycar.parts.camera import Webcam
+        
+            #camA = Webcam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, iCam = 0)
+            #camB = Webcam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, iCam = 1)
 
-            camA = Webcam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, iCam = 0)
-            camB = Webcam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, iCam = 1)
-
-        elif cfg.CAMERA_TYPE == "CVCAM":
+        if cfg.CAMERA_TYPE == "CVCAM":
             from donkeycar.parts.cv import CvCam
 
             camA = CvCam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, iCam = 0)
@@ -946,7 +952,7 @@ def add_imu(V, cfg):
 #
 def add_drivetrain(V, cfg):
     if cfg.DRIVE_TRAIN_TYPE == "BUFFMATA":
-        drivetrain = BuffMata(cfg.STEERING_ARDUINO_PIN, cfg.THROTTLE_ARDUINO_PIN, serial_device)
+        drivetrain = BuffMata(cfg.MAXTHROTTLE, serial_device)
         V.add(drivetrain, inputs=['steering','throttle'])
     if cfg.DRIVE_TRAIN_TYPE == "ARDUINO":
         arduino_controller = ArduinoFirmata(
