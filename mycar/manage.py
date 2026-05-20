@@ -47,18 +47,28 @@ from donkeycar.parts.actuator import ArduinoFirmata, ArdPWMSteering, ArdPWMThrot
 from docopt import docopt
 import serial
 import time
+from datetime import datetime
 from donkeycar.parts.Oak_D2 import oakD2
 
 # Testing Macros
 REMOVESIM = 0
 REMOVECAMERA = 0
 REMOVEIMU = 0
-
 REMOVEWEATHERINPUT = 0
 
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+# Set up handlers
+file_handler = logging.FileHandler(f"output_{timestamp}.txt")
+file_handler.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[file_handler, console_handler]
+)
 
 # port = '/dev/ttyTHS1'
 port = '/dev/ttyACM0'
